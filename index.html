@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ПОРА играть: полярные баллы</title>
-<meta name="description" content="Пиксельная игра по цифрам статьи «Образование в российской Арктике»: проведите героя от детского сада до первой зарплаты">
+<meta name="description" content="Пиксельная игра по цифрам статьи «Образование в российской Арктике»: проведите героя от детского сада до вуза">
 <style>
 /* Fonts embedded as subsets, SIL Open Font License 1.1: Press Start 2P (logo, big numbers, scene) and Pixellari by Zacchary Dempsey-Plante (all text, buttons, headings).
    "Pixellari Cyr" is a modified Pixellari: Cyrillic letters, en/em dash and minus were added in the font's own 16 px grid. */
@@ -181,7 +181,7 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
   </div>
  
   <div class="panel" id="introPanel">
-    <p class="station">ПОЛЯРНЫЕ БАЛЛЫ <span>· от детского сада до первой зарплаты</span></p>
+    <p class="station">ПОЛЯРНЫЕ БАЛЛЫ <span>· от детского сада до вуза</span></p>
     <p class="q intro">Проведите героя через восемь станций. На каждой из них вам предстоит выполнить мини-задание по мотивам статьи «Образование в российской Арктике». Проверим, внимательно ли вы ее читали!</p>
     <p class="hint">Чем вы ближе к правильному ответу, тем больше получите очков (до 10 за одну задачу). Удачи!</p>
     <div class="actions"><button class="pbtn" id="startBtn" type="button">НАЧАТЬ</button></div>
@@ -219,7 +219,7 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
     </div>
   </div>
  
-  <p class="src">По статье «Образование в российской Арктике» (GoArctic, 30 сентября 2026) и постам канала <a href="https://t.me/poradata" target="_blank" rel="noopener">«ПОРА считать»</a>. Данные: исследование ПОРА о 128 малых поселках Крайнего Севера, Росстат, портал «Работа в России», тарифы вузов на 2026/2027 учебный год.</p>
+  <p class="src" id="src">По статье «Образование в российской Арктике» (GoArctic, 30 сентября 2026) и постам канала <a href="https://t.me/poradata" target="_blank" rel="noopener">«ПОРА считать»</a>. Данные: исследование ПОРА о 128 малых поселках Крайнего Севера, Росстат, портал «Работа в России», тарифы вузов на 2026/2027 учебный год.</p>
 </div>
 <div class="toast" id="toast" role="status"></div>
  
@@ -711,6 +711,7 @@ function startGame(){
   idx = 0; score = 0; results = []; setScore(); setShare(false);
   G.station = 0; G.stage = 0; G.px = STX(0); G.ruler = null; G.flag = null; G.mode = 'walk'; G.camSnap = true; G.skin = null; G.morph = null; G.jump = 0;
   el.title.classList.add('hidden'); el.endOverlay.classList.add('hidden'); el.endPanel.classList.add('hidden'); $('#introPanel').classList.add('hidden');
+  $('#src').classList.add('hidden'); // the sources line is shown on the first and the last screen only
   renderDots();
   startRound();
 }
@@ -739,7 +740,7 @@ function startValue(r){
   const span = r.max - r.min, grid = Math.max(r.step, span >= 100 ? 5 : 1);
   const lo = r.min + span * 0.1, hi = r.max - span * 0.1, far = span * (r.tol || 0.3) * 0.7;
   const pool = [];
-  for (let k = Math.ceil(lo / grid - 1e-9); k * grid <= hi + 1e-9; k++) { const v = roundTo(k * grid, r.step); if (Math.abs(v - r.truth) >= far) pool.push(v); }
+  for (let k = Math.ceil(lo / grid - 1e-9); k * grid <= hi + 1e-9; k++) { const v = roundTo(k * grid, r.step); if (Math.abs(v - r.truth) >= far && Math.abs(v - (r.min + r.max) / 2) >= span * 0.05) pool.push(v); } // and never the dead centre
   return pool.length ? pool[Math.floor(Math.random() * pool.length)] : roundTo((r.min + r.max) / 2, r.step);
 }
 function buildScale(r){
@@ -1032,7 +1033,7 @@ function finish(){
     const ul = $('#roundsList'); ul.innerHTML = '';
     results.forEach((res, i) => { const li = document.createElement('li'); li.innerHTML = `<span class="n">${i + 1}</span><span>${res.title}</span><span class="p${res.pts ? '' : ' zero'}">${res.pts}</span>`; ul.appendChild(li); });
     $('#endSub').textContent = `${fmt(score)} из ${fmt(MAX)}. ${rank}`;
-    el.endOverlay.classList.remove('hidden'); el.endPanel.classList.remove('hidden');
+    el.endOverlay.classList.remove('hidden'); el.endPanel.classList.remove('hidden'); $('#src').classList.remove('hidden');
     G.jump = 1; SFX.good();
     window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
   };
