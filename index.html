@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ПОРА прикинуть: полярные баллы</title>
+<title>ПОРА играть: полярные баллы</title>
 <meta name="description" content="Пиксельная игра по цифрам статьи «Образование в российской Арктике»: проведите героя от детского сада до первой зарплаты">
 <style>
 /* Fonts embedded as subsets, SIL Open Font License 1.1: Press Start 2P (logo, big numbers, scene) and Pixellari by Zacchary Dempsey-Plante (all text, buttons, headings).
@@ -72,6 +72,8 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
 .pbtn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 0 var(--ink)}
 .pbtn:disabled{background:var(--line); color:var(--muted); cursor:not-allowed; transform:none; box-shadow:3px 3px 0 0 var(--ink)}
 .pbtn.ghost{background:#fff; color:var(--blue)}
+.pbtn[aria-expanded="true"]{transform:translate(2px,2px); box-shadow:1px 1px 0 0 var(--ink)}
+.share{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; padding:12px; border:2px dashed var(--sky)} /* same tray as the medals */
 .pbtn:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--orange); outline-offset:2px}
  
 /* estimation controls */
@@ -164,7 +166,7 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
 <body>
 <div class="game">
   <div class="hud">
-    <span class="t">ПОРА ПРИКИНУТЬ</span>
+    <span class="t">ПОРА ИГРАТЬ</span>
     <span class="dots" id="dots" aria-label="Станции"></span>
     <span class="sc">ОЧКИ<b id="scoreVal">0</b></span>
     <button class="snd" id="sndBtn" type="button" aria-pressed="false">ЗВУК ВЫКЛ</button>
@@ -172,7 +174,7 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
   <div class="scene" id="sceneBox">
     <canvas id="scene" width="320" height="180" aria-label="Пиксельная сцена: герой идет по северному поселку"></canvas>
     <div class="overlay" id="titleOverlay">
-      <h1>ПОРА<br>ПРИКИНУТЬ</h1>
+      <h1>ПОРА<br>ИГРАТЬ</h1>
       <div class="press">НАЖМИТЕ, ЧТОБЫ НАЧАТЬ</div>
     </div>
     <div class="overlay end hidden" id="endOverlay"><h1>ПУТЬ ПРОЙДЕН</h1><p class="sub" id="endSub"></p></div>
@@ -205,9 +207,15 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
     <ul class="rounds" id="roundsList"></ul>
     <div class="after">СПАСИБО ЗА УЧАСТИЕ!</div>
     <div class="actions">
-      <button class="pbtn" id="shareBtn" type="button">ПОДЕЛИТЬСЯ</button>
+      <button class="pbtn" id="shareBtn" type="button" aria-expanded="false" aria-controls="shareMenu">ПОДЕЛИТЬСЯ</button>
       <button class="pbtn ghost" id="againBtn" type="button">ЕЩЕ РАЗ</button>
       <a class="pbtn ghost" href="https://goarctic.ru/society/obrazovanie-v-rossiyskoy-arktike/" target="_blank" rel="noopener">СТАТЬЯ</a>
+    </div>
+    <div class="share hidden" id="shareMenu">
+      <a class="pbtn ghost" id="shTg" href="https://t.me/share/url" target="_blank" rel="noopener">TELEGRAM</a>
+      <a class="pbtn ghost" id="shVk" href="https://vk.com/share.php" target="_blank" rel="noopener">ВКОНТАКТЕ</a>
+      <button class="pbtn ghost" id="shCopy" type="button">КОПИРОВАТЬ</button>
+      <button class="pbtn ghost hidden" id="shMore" type="button">ДРУГОЕ</button>
     </div>
   </div>
  
@@ -253,7 +261,7 @@ const ROUNDS = [
     fmt: v => `${fmt(v)}%`, unit: () => 'детей ходят в детсад', short: v => `${fmt(v)}%`,
     reveal:'В поселках АЗРФ детский сад посещают в среднем 78% детей. Кстати, это больше, чем по стране в целом.' },
   { type:'est', st:1, title:'Набор первоклассника',
-    q:'Сколько стоит «набор первоклассника» для мальчика в среднем арктическом городе?',
+    q:'Собираемся в школу! Сколько стоит «набор первоклассника» для мальчика в среднем арктическом городе?',
     hint:'«Набор первоклассника» рассчитывается Росстатом каждый год в актуальных ценах.',
     min:10, max:60, step:0.5, truth:33.5,
     fmt: v => num1(v), unit: () => 'тыс. рублей', short: v => `${num1(v)} тыс. рублей`,
@@ -300,8 +308,8 @@ const ROUNDS = [
              { v:-30, s:'НИЖЕ, %', row:1, align:'left' }, { v:30, s:'ВЫШЕ, %', row:1, align:'right' } ],
     fmt: v => v === 0 ? '0%' : `${v < 0 ? '-' : '+'}${num1(Math.abs(v))}%`,
     unit: v => v < 0 ? 'ниже, чем у среднего работника' : v > 0 ? 'выше, чем у среднего работника' : 'как у среднего работника',
-    short: v => v === 0 ? 'без разницы' : `${v < 0 ? 'ниже' : 'выше'} на ${num1(Math.abs(v))}%`,
-    reveal:'Ниже на 3,5%. Учителя получают около 4 потребительских наборов в месяц, а средний работник 4,15. По России в целом зарплаты учителей ниже общего уровня примерно на 18%. Примерно в каждом третьем северном поселке учителя зарабатывают больше среднего.' },
+    short: v => v === 0 ? 'разницы нет' : `${v < 0 ? 'ниже' : 'выше'} на ${num1(Math.abs(v))}%`,
+    reveal:'Ниже на 3,5%. Учителя получают около 4 потребительских наборов в месяц, а средний работник — 4,15. По России в целом зарплаты учителей ниже общего уровня примерно на 18%. Почти в каждом третьем северном поселке учителя зарабатывают больше среднего.' },
   { type:'est', st:4, title:'Школьные вакансии',
     q:'Какая медианная зарплата указана в школьных вакансиях АЗРФ на портале «Работа в России»?',
     hint:'Объявления школ арктических муниципалитетов, лето 2026 года.',
@@ -317,7 +325,7 @@ const ROUNDS = [
       { id:'mat', label:'Учителя математики', value:60, display:'60 вакансий' },
       { id:'rus', label:'Учителя русского языка и литературы', value:37, display:'37 вакансий' },
       { id:'fiz', label:'Учителя физики', value:30, display:'30 вакансий' } ],
-    reveal:'Всего в середине августа в арктических муниципалитетах было открыто 367 педагогических вакансий, больше трети из них, 134, на Ямале.' },
+    reveal:'Всего в середине августа в арктических муниципалитетах было открыто 367 педагогических вакансий, больше трети из них (134) — на Ямале.' },
   { type:'est', st:5, title:'Где учиться дальше',
     q:'Сколько высших учебных заведений и филиалов вузов работает в регионах, полностью или частично входящих в АЗРФ?',
     hint:'Рассматриваем все регионы в целом, включая неарктические части.',
@@ -326,13 +334,13 @@ const ROUNDS = [
     reveal:'59, из них около 30 филиалов. Головные университеты сосредоточены в Архангельске, Мурманске, Якутске, Норильске, Красноярске, Сыктывкаре и Ханты-Мансийске. На Ямале и Чукотке высшее образование представлено только филиалами, а в НАО вузов нет.' },
   { type:'rank', st:6, title:'Цена года обучения',
     q:'Где обучение стоит дороже, а где — дешевле? Распределите программы по стоимости первого курса в 2026/2027 учебном году.',
-    hint:'Официальные тарифы четырех вузов АЗРФ (САФУ и СГМУ в Архангельске, МАУ в Мурманске и ЗГУ в Норильске).',
+    hint:'Учитывались официальные тарифы вузов АЗРФ.',
     top:'1 — самое дорогое обучение',
     items:[
       { id:'gd', label:'«Горное дело», ЗГУ', sub:'Норильск, очная форма', value:651.4, display:'651,4 тыс. руб.' },
       { id:'tb', label:'Технический бакалавриат, ЗГУ', sub:'Норильск, очная форма', value:584.9, display:'584,9 тыс. руб.' },
-      { id:'st', label:'«Стоматология», СГМУ', sub:'Архангельск', value:315, display:'315 тыс. руб.' },
-      { id:'fa', label:'«Фармация», СГМУ', sub:'Архангельск', value:250, display:'250 тыс. руб.' },
+      { id:'st', label:'«Стоматология», СГМУ', sub:'Архангельск, очная форма', value:315, display:'315 тыс. руб.' },
+      { id:'fa', label:'«Фармация», СГМУ', sub:'Архангельск, очная форма', value:250, display:'250 тыс. руб.' },
       { id:'sr', label:'«Социальная работа», СГМУ', sub:'Архангельск, заочная форма', value:55, display:'около 55 тыс. руб.' } ],
     reveal:'Цены различаются на порядок. Дороже стоят очные технические программы, заочные гуманитарные — дешевле. Около половины российских студентов получают образование на платной основе.' }
 ];
@@ -700,7 +708,7 @@ function toast(m, ms = 2200){ el.toast.textContent = m; el.toast.classList.add('
 function startGame(){
   if (cur) { cur.cleanup(); cur = null; }
   walk = null;
-  idx = 0; score = 0; results = []; setScore();
+  idx = 0; score = 0; results = []; setScore(); setShare(false);
   G.station = 0; G.stage = 0; G.px = STX(0); G.ruler = null; G.flag = null; G.mode = 'walk'; G.camSnap = true; G.skin = null; G.morph = null; G.jump = 0;
   el.title.classList.add('hidden'); el.endOverlay.classList.add('hidden'); el.endPanel.classList.add('hidden'); $('#introPanel').classList.add('hidden');
   renderDots();
@@ -725,6 +733,15 @@ function startRound(){
 }
  
 /* ---- scale: hero on a number line ('est') or on distance segments ('zone') ---- */
+// Where the hero starts: a random round number, off the very ends of the scale and far enough
+// from the answer that an untouched start brings at most 3 points (the middle used to give up to 9).
+function startValue(r){
+  const span = r.max - r.min, grid = Math.max(r.step, span >= 100 ? 5 : 1);
+  const lo = r.min + span * 0.1, hi = r.max - span * 0.1, far = span * (r.tol || 0.3) * 0.7;
+  const pool = [];
+  for (let k = Math.ceil(lo / grid - 1e-9); k * grid <= hi + 1e-9; k++) { const v = roundTo(k * grid, r.step); if (Math.abs(v - r.truth) >= far) pool.push(v); }
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : roundTo((r.min + r.max) / 2, r.step);
+}
 function buildScale(r){
   G.mode = 'est'; sceneBox.classList.add('drag');
   const zone = r.type === 'zone';
@@ -752,7 +769,7 @@ function buildScale(r){
     if (min < 0 && max > 0) ruler.big.push(posOf(0));
     ruler.labels = r.labels ? r.labels.map(l => ({ x: posOf(l.v), row: l.row, s: l.s, align: l.align }))
                             : [{ x: x0, row: 0, s: r.fmt(min), align: 'left' }, { x: x1, row: 0, s: r.fmt(max), align: 'right' }];
-    val = roundTo((min + max) / 2, step);
+    val = startValue(r);
   }
   G.ruler = ruler;
   const totalSteps = Math.round((max - min) / step);
@@ -825,6 +842,7 @@ function buildScale(r){
     check(){
       lock();
       wrap.querySelectorAll('button').forEach(b => b.disabled = true);
+      wrap.querySelector('.tip').classList.add('hidden'); // the how-to line returns with the next task
       G.mode = 'result';
       let pts, cmp, tx;
       if (zone) {
@@ -953,6 +971,7 @@ function buildRank(r){
     check(){
       lock(); sel = null; sync();
       wrap.classList.add('checked'); G.mode = 'result';
+      wrap.querySelector('.tip').classList.add('hidden');
       let ok = 0, near = 0, sum = 0;
       rows.forEach(it => {
         const p = placeOfRow(it.id), tp = truePlace[it.id], d = Math.abs(p - tp);
@@ -1020,19 +1039,33 @@ function finish(){
   G.station = STATIONS.length - 1; renderDots();
   walkTo(STX(STATIONS.length - 1), done);
 }
-function shareText(){ const url = /^https?:/.test(location.href) ? location.href : ARTICLE; const [rank] = verdict(score / MAX); return `${fmt(score)} из ${fmt(MAX)} в пиксельной игре «ПОРА прикинуть: полярные баллы» про образование в Арктике. Мой уровень: ${rank}. Проверьте себя: ${url}`; }
+const shareUrl = () => /^https?:/.test(location.href) ? location.href.split('#')[0] : ARTICLE;
+const shareLine = () => { const [rank] = verdict(score / MAX); return `${fmt(score)} из ${fmt(MAX)} в пиксельной игре «ПОРА играть: полярные баллы» про образование в Арктике. Мой уровень: ${rank}.`; };
+const shareText = () => `${shareLine()} Проверьте себя: ${shareUrl()}`;
 async function copyText(text){
-  try { await navigator.clipboard.writeText(text); toast('Результат скопирован'); }
-  catch (_) { toast('Скопируйте вручную: ' + text, 6000); }
+  try { await navigator.clipboard.writeText(text); toast('Результат скопирован'); return; } catch (_) {}
+  // fallback for pages embedded without clipboard permission
+  const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed; top:0; left:0; opacity:0';
+  document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (_) {} ta.remove();
+  toast(ok ? 'Результат скопирован' : 'Скопируйте вручную: ' + text, ok ? 2200 : 6000);
 }
-$('#shareBtn').addEventListener('click', async () => {
-  const text = shareText();
-  if (navigator.share) {
-    try { await navigator.share({ text }); return; }
-    catch (err) { if (err && err.name === 'AbortError') return; } // the user closed the share sheet
+// own share menu: the system share sheet on a PC offers random apps (Teams, Zoom...) and no Telegram
+const shareMenu = $('#shareMenu'), shareBtn = $('#shareBtn');
+const setShare = open => { shareMenu.classList.toggle('hidden', !open); shareBtn.setAttribute('aria-expanded', String(open)); };
+shareBtn.addEventListener('click', () => {
+  const open = shareMenu.classList.contains('hidden');
+  if (open) {
+    const url = encodeURIComponent(shareUrl()), line = encodeURIComponent(`${shareLine()} Проверьте себя!`);
+    $('#shTg').href = `https://t.me/share/url?url=${url}&text=${line}`;
+    $('#shVk').href = `https://vk.com/share.php?url=${url}&title=${line}`;
   }
-  copyText(text);
+  SFX.tick(); setShare(open);
 });
+$('#shCopy').addEventListener('click', () => copyText(shareText()));
+if (navigator.share && window.matchMedia && window.matchMedia('(pointer: coarse)').matches) { // phones: the native sheet is useful there
+  const more = $('#shMore'); more.classList.remove('hidden');
+  more.addEventListener('click', async () => { try { await navigator.share({ text: shareText() }); } catch (_) {} });
+}
 $('#againBtn').addEventListener('click', () => { SFX.tick(); startGame(); });
 el.title.addEventListener('click', () => { SFX.init(); SFX.confirm(); startGame(); });
 $('#startBtn').addEventListener('click', () => { SFX.init(); SFX.confirm(); startGame(); });
