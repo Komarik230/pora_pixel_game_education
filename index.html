@@ -181,7 +181,7 @@ canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-
   </div>
  
   <div class="panel" id="introPanel">
-    <p class="station">ПОЛЯРНЫЕ БАЛЛЫ <span>· от детского сада до вуза</span></p>
+    <p class="station">ПОРА учиться <span>· от детского сада до вуза</span></p>
     <p class="q intro">Проведите героя через восемь станций. На каждой из них вам предстоит выполнить мини-задание по мотивам статьи «Образование в российской Арктике». Проверим, внимательно ли вы ее читали!</p>
     <p class="hint">Чем вы ближе к правильному ответу, тем больше получите очков (до 10 за одну задачу). Удачи!</p>
     <div class="actions"><button class="pbtn" id="startBtn" type="button">НАЧАТЬ</button></div>
@@ -1041,7 +1041,7 @@ function finish(){
   walkTo(STX(STATIONS.length - 1), done);
 }
 const shareUrl = () => /^https?:/.test(location.href) ? location.href.split('#')[0] : ARTICLE;
-const shareLine = () => { const [rank] = verdict(score / MAX); return `${fmt(score)} из ${fmt(MAX)} в пиксельной игре «ПОРА играть: полярные баллы» про образование в Арктике. Мой уровень: ${rank}.`; };
+const shareLine = () => { const [rank] = verdict(score / MAX); return `${fmt(score)} из ${fmt(MAX)} в пиксельной игре «ПОРА учиться» про образование в Арктике. Мой уровень: ${rank}.`; };
 const shareText = () => `${shareLine()} Проверьте себя: ${shareUrl()}`;
 async function copyText(text){
   try { await navigator.clipboard.writeText(text); toast('Результат скопирован'); return; } catch (_) {}
